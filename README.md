@@ -4,20 +4,11 @@
 
   <!-- Badges -->
   <p>
-    <!-- License -->
-    <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" />
-
-    <!-- Docker -->
-    <img src="https://img.shields.io/badge/Docker-ready-blue?style=for-the-badge" />
-
-    <!-- FastAPI -->
-    <img src="https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge" />
-
-    <!-- NextJS -->
-    <img src="https://img.shields.io/badge/Frontend-Next.js-000000?style=for-the-badge" />
-
-    <!-- Python -->
-    <img src="https://img.shields.io/badge/Python-3.11-yellow?style=for-the-badge" />
+    <!-- License --><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" />
+    <!-- Docker --><img src="https://img.shields.io/badge/Docker-ready-blue?style=for-the-badge" />
+    <!-- FastAPI --><img src="https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge" />
+    <!-- NextJS --><img src="https://img.shields.io/badge/Frontend-Next.js-000000?style=for-the-badge" />
+    <!-- Python --><img src="https://img.shields.io/badge/Python-3.11-yellow?style=for-the-badge" />
   </p>
 </div>
 
