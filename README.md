@@ -44,7 +44,7 @@
 ---
 
 # 🏗️ Архитектура
-
+```drawio
                 ┌──────────────────────────┐
                 │        Frontend          │
                 │ (NextJS, Port 3000)      │
@@ -66,7 +66,7 @@
    ┌──────────────────┐     ┌───────────────┐
    │     Postgres     │     │     Redis     │
    └──────────────────┘     └───────────────┘
-
+```
 
 Monitoring: Prometheus + Grafana + Alertmanager
 Logs: Loki + Promtail
@@ -103,9 +103,9 @@ TZ=Europe/Moscow
 ```
 
 ## 4. После запуска
-Панель: https://example.com
-Grafana: https://example.com/grafana
-API: https://example.com/api
+- Панель: https://example.com
+- Grafana: https://example.com/grafana
+- API: https://example.com/api
 
 # 📚 Документация
 ## Backend API
@@ -136,9 +136,9 @@ https://example.com/api/redoc
 - Логи из Loki
 
 # 🛡️ Безопасность
-Все сервисы работают в Docker bridge networks
-Все внешние запросы проходят через nginx(SWAG)
-HTTPS выдаётся автоматически Lets Encrypt
+- Все сервисы работают в Docker bridge networks
+- Все внешние запросы проходят через nginx(SWAG)# Nexus Bot Platform — Документация.ini
+- HTTPS выдаётся автоматически Lets Encrypt
 
 Жёстко рекомендуется:
 сменить все пароли в .env
@@ -146,6 +146,7 @@ HTTPS выдаётся автоматически Lets Encrypt
 включить Fail2Ban (опционально)
 
 # 🧬 Структура репозитория
+```bash
 /
 ├── backend/
 │   ├── app/
@@ -165,6 +166,7 @@ HTTPS выдаётся автоматически Lets Encrypt
 ├── docker-compose.prod.yml
 ├── deploy_prod.sh
 └── README.md
+```
 
 # 🤝 Контрибьютинг
 PR и предложения приветствуются.
