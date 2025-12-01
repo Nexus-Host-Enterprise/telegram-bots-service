@@ -1,0 +1,33 @@
+# template: faq/template.py.j2
+from aiogram import Bot, Dispatcher, types
+from aiogram.utils import executor
+import os
+from cryptography.fernet import Fernet
+import base64
+
+# decrypt token
+enc_b64 = os.environ.get("TG_TOKEN_B64")
+enc = base64.b64decode(enc_b64)
+# In bot container you must have FERNET_KEY as env var
+f = Fernet(os.environ["FERNET_KEY"].encode())
+TOKEN = f.decrypt(enc).decode()
+
+bot = Bot(token=TOKEN)
+dp = Dispatcher(bot)
+
+FAQ = {{ config | tojson }}
+
+@dp.message_handler(commands=["start"])
+async def start_cmd(message: types.Message):
+    await message.answer("Здравствуйте! Я FAQ-бот. Выберите вопрос или напишите ваш.")
+
+@dp.message_handler()
+async def echo(message: types.Message):
+    q = message.text.strip().lower()
+    if q in FAQ:
+        await message.answer(FAQ[q])
+    else:
+        await message.answer("Не понял. Вы можете выбрать один из вопросов: " + ", ".join(FAQ.keys()))
+
+if __name__ == "__main__":
+    executor.start_polling(dp, skip_updates=True)

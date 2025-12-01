@@ -1,0 +1,22 @@
+groups:
+  - name: backend.rules
+    rules:
+      - alert: BackendDown
+        expr: up{job="backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backend down (instance {{ $labels.instance }})"
+          description: "Backend has been down for more than 1 minute."
+
+  - name: high_cpu
+    rules:
+      - alert: InstanceHighCPU
+        expr: (instance:node_cpu_seconds:rate5m{mode="idle"} < 0.2)
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage over 80% for >5m"

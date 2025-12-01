@@ -1,0 +1,18 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: 'email-notify'
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 3h
+
+receivers:
+  - name: 'email-notify'
+    email_configs:
+      - to: '${ALERT_EMAIL}'
+        from: '${SMTP_FROM}'
+        smarthost: '${SMTP_HOST}:${SMTP_PORT}'
+        auth_username: '${SMTP_USER}'
+        auth_identity: '${SMTP_USER}'
+        auth_password: '${SMTP_PASS}'

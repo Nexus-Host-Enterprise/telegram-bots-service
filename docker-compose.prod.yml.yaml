@@ -1,0 +1,188 @@
+version: "3.8"
+
+networks:
+  web:
+    external: false
+  monitoring:
+    external: false
+
+services:
+  # -------------------------
+  # Datastores
+  # -------------------------
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: nexus
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - web
+
+  redis:
+    image: redis:7
+    restart: always
+    volumes:
+      - redisdata:/data
+    networks:
+      - web
+
+  # -------------------------
+  # App services
+  # -------------------------
+  backend:
+    build:
+      context: ./backend
+      target: production
+    env_file: ./backend/.env
+    restart: always
+    expose:
+      - "8000"
+    depends_on:
+      - db
+      - redis
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+    networks:
+      - web
+      - monitoring
+
+  worker:
+    build:
+      context: ./backend
+      target: production
+    env_file: ./backend/.env
+    command: ["celery", "-A", "app.celery_app.celery", "worker", "--loglevel=info"]
+    restart: always
+    depends_on:
+      - redis
+      - db
+    networks:
+      - web
+      - monitoring
+
+  bot-manager:
+    image: tiangolo/uvicorn-gunicorn-fastapi:python3.11
+    container_name: bot-manager
+    volumes:
+      - ./bot_manager_stub:/app:ro
+    command: ["uvicorn", "botmanager_stub:app", "--host", "0.0.0.0", "--port", "8081"]
+    restart: always
+    expose:
+      - "8081"
+    networks:
+      - web
+      - monitoring
+
+  frontend:
+    build:
+      context: ./frontend
+      target: production
+    env_file: ./frontend/.env.local
+    restart: always
+    expose:
+      - "3000"
+    depends_on:
+      - backend
+    networks:
+      - web
+
+  # -------------------------
+  # Reverse proxy + automatic Let's Encrypt (SWAG)
+  # linuxserver/swag (nginx + acme)
+  # -------------------------
+  swag:
+    image: ghcr.io/linuxserver/swag:ubuntu-24.04-latest
+    container_name: swag
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ:-UTC}
+      - URL=${DOMAIN}               # e.g. example.com
+      - SUBDOMAINS=www              # or empty
+      - VALIDATION=http             # or dns-cloudflare for wildcard
+      - ONLY_SUBDOMAINS=false
+      - DNSPLUGIN=                  # leave empty unless using DNS validation
+    volumes:
+      - ./swag/config:/config
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: always
+    networks:
+      - web
+
+  # -------------------------
+  # Monitoring stack
+  # -------------------------
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    ports:
+      - "9093:9093"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:10.1.0
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - monitoring
+
+  loki:
+    image: grafana/loki:2.8.2
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./monitoring/loki/local-config.yaml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - monitoring
+
+  promtail:
+    image: grafana/promtail:3.0.1
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/log:/var/log:ro
+      - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    restart: always
+    networks:
+      - monitoring
+
+volumes:
+  pgdata:
+  redisdata:
+  prometheus_data:
+  alertmanager_data:
+  grafana_data:
+  loki_data:
